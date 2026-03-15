@@ -91,7 +91,7 @@ passwd ingGGRM
 EDITOR=nano visudo
 ```
 
-### 5.3 Initramfs & Bootloader
+### 5.3 Initramfs, Bootloader & Boot the System
 ```bash
 # Edit mkinitcpio.conf to include LVM and BTRFS overlay hooks
 nano /etc/mkinitcpio.conf
@@ -104,6 +104,9 @@ mkinitcpio -P
 # Install GRUB
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
+
+# Reboot to start the fresh system
+reboot
 ```
 
 ## 6. Manual Snapshot & Rollback Infrastructure
