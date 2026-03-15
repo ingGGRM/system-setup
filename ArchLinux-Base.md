@@ -5,6 +5,24 @@
 
 ---
 
+## 1. Disk Partitioning GPT Table Layout Creation *Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.
+
+### Disk 1
+```bash
+# 1. Create 1GB EFI Partition (Type EF00)
+sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI" /dev/nvme0n1
+# 2. Create 150GB BTRFS Root Partition (Type 8300)
+sgdisk -n 2:0:+150G -t 2:8300 -c 2:"Arch_Root" /dev/nvme0n1
+# 3. Create LVM Partition with remaining space (Type 8E00)
+sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme0n1
+```
+
+### Disk 2
+```bash
+# 1. Create LVM Partition with remaining space (Type 8E00)
+sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme1n1
+```
+
 ## 1. Disk Formatting & LVM Setup
 *Utilizing persistent labels to prevent asynchronous NVME enumeration swaps (`nvme0` vs `nvme1`).*
 
