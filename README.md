@@ -9,7 +9,7 @@ The setups documented here are engineered to meet strict requirements: rock-soli
 Select a system below to view its complete step-by-step deployment guide and architectural layout:
 
 ### Linux Environments
-* 🖥️ **[ingGGRM-ArchLinux: Foundation & Architecture](./ingGGRM-ArchLinux-Base.md)**
+* 🖥️ **[ingGGRM-ArchLinux: Foundation & Architecture](./ArchLinux-Base.md)**
     * *The bare-metal base installation. Features a custom Btrfs subvolume layout, linked Snapper rollback scripts, LVM storage arrays, and Intel/NVIDIA hybrid graphics configurations.*
 * *(Future Window Manager / Desktop Environment setups will go here)*
 
