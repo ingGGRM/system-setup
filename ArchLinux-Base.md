@@ -30,6 +30,7 @@ btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@log
 btrfs subvolume create /mnt/@pkg
 btrfs subvolume create /mnt/@snapshots
+btrfs subvolume create /mnt/@home_snapshots
 
 umount /mnt
 ```
@@ -40,13 +41,14 @@ umount /mnt
 mount -o subvol=@,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt
 
 # Create target directories
-mkdir -p /mnt/{boot,home,var/log,var/cache/pacman/pkg,.snapshots}
+mkdir -p /mnt/{boot,home,var/log,var/cache/pacman/pkg,.snapshots,home/.snapshots}
 
 # Mount remaining subvolumes and boot partition
 mount -o subvol=@home,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt/home
 mount -o subvol=@log,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt/var/log
 mount -o subvol=@pkg,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt/var/cache/pacman/pkg
 mount -o subvol=@snapshots,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt/.snapshots
+mount -o subvol=@home_snapshots,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt/home/.snapshots
 mount /dev/disk/by-label/BOOT /mnt/boot
 ```
 
@@ -106,6 +108,22 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 ## 6. Manual Snapshot & Rollback Infrastructure
 *Ensuring strict manual control over system states without automated interference.*
+
+```bash
+# Need to temporary undo the snapshots subvolumes mount and delete the folders
+sudo umount /.snapshots /home/.snapshots
+sudo rmdir /.snapshots /home/.snapshots
+
+# Crete the snapper configs (this will create the folders again)
+sudo snapper -c root create-config /
+sudo snapper -c home create-config /home
+
+# We'll delete the new folders and recreate them for the mount of the snapshot subvolumes
+sudo rmdir /.snapshots /home/.snapshots
+sudo mkdir -p /.snapshots /home/.snapshots
+# Now we'll use the fstab for remount the umounted subvolumes
+sudo mount -a
+```
 
 ```bash
 # Populate xdg dirs in user home
