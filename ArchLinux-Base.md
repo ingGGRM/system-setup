@@ -23,7 +23,7 @@ sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme0n1
 sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme1n1
 ```
 
-## 1. Disk Formatting & LVM Setup
+## 2. Disk Formatting & LVM Setup
 *Utilizing persistent labels to prevent asynchronous NVME enumeration swaps (`nvme0` vs `nvme1`).*
 
 ```bash
@@ -38,7 +38,7 @@ lvcreate -L 400G -n lv_storage vg_data
 mkfs.ext4 -L DATA /dev/mapper/vg_data-lv_storage
 ```
 
-## 2. Btrfs Subvolume Initialization
+## 3. Btrfs Subvolume Initialization
 ```bash
 mount /dev/disk/by-label/ROOT /mnt
 
@@ -53,7 +53,7 @@ btrfs subvolume create /mnt/@home_snapshots
 umount /mnt
 ```
 
-## 3. Mounting the File System
+## 4. Mounting the File System
 ```bash
 # Mount root with optimized performance flags
 mount -o subvol=@,compress=zstd,noatime /dev/disk/by-label/ROOT /mnt
@@ -70,14 +70,14 @@ mount -o subvol=@home_snapshots,compress=zstd,noatime /dev/disk/by-label/ROOT /m
 mount /dev/disk/by-label/BOOT /mnt/boot
 ```
 
-## 4. Base System Installation
+## 5. Base System Installation
 *Using the Linux-Zen kernel for performance and LTS as a fallback.*
 
 ```bash
 pacstrap -K /mnt base base-devel linux-zen linux-zen-headers linux-lts linux-lts-headers linux-firmware nvim nano btrfs-progs lvm2 networkmanager snapper grub grub-btrfs inotify-tools xdg-user-dirs
 ```
 
-## 5. System Configuration
+## 6. System Configuration
 ```bash
 # Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -86,7 +86,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
 ```
 
-### 5.1 Hostname, Locale, and Keyboard
+### 6.1 Hostname, Locale, and Keyboard
 ```bash
 # Set Hostname
 echo "ingGGRM-ArchLinux" > /etc/hostname
@@ -100,7 +100,7 @@ locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
-### 5.2 User Creation
+### 6.2 User Creation
 ```bash
 useradd -m -G wheel -s /bin/bash ingGGRM
 passwd ingGGRM
@@ -109,7 +109,7 @@ passwd ingGGRM
 EDITOR=nano visudo
 ```
 
-### 5.3 Initramfs, Bootloader & Boot the System
+### 6.3 Initramfs, Bootloader & Boot the System
 ```bash
 # Edit mkinitcpio.conf to include LVM and BTRFS overlay hooks
 nano /etc/mkinitcpio.conf
@@ -127,7 +127,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 reboot
 ```
 
-## 6. Manual Snapshot & Rollback Infrastructure
+## 7. Manual Snapshot & Rollback Infrastructure
 *Ensuring strict manual control over system states without automated interference.*
 
 ```bash
@@ -153,7 +153,7 @@ xdg-user-dirs-update
 mkdir -p /home/ingGGRM/.local/bin
 ```
 
-### 6.1 `snap-create` (Manual Snapshot Creation)
+### 7.1 `snap-create` (Manual Snapshot Creation)
 ```bash
 cat << 'EOF' > /home/ingGGRM/.local/bin/snap-create
 #!/bin/bash
@@ -187,7 +187,7 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 EOF
 ```
 
-### 6.2 `snap-rollback` (OverlayFS Writeable Recovery)
+### 7.2 `snap-rollback` (OverlayFS Writeable Recovery)
 ```bash
 cat << 'EOF' > /home/ingGGRM/.local/bin/snap-rollback
 #!/bin/bash
@@ -241,7 +241,7 @@ echo "Rollback Complete. Reboot to finalize."
 EOF
 ```
 
-### 6.3 `snap-broken-remove` (Deep Janitor Cleanup)
+### 7.3 `snap-broken-remove` (Deep Janitor Cleanup)
 ```bash
 cat << 'EOF' > /home/ingGGRM/.local/bin/snap-broken-remove
 #!/bin/bash
@@ -287,7 +287,7 @@ chmod +x /home/ingGGRM/.local/bin/*
 chown -R ingGGRM:ingGGRM /home/ingGGRM/.local/bin
 ```
 
-## 7. Power TTY Environment (Zsh)
+## 8. Power TTY Environment (Zsh)
 ```bash
 # Install Zsh and modern CLI tools
 pacman -S zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting exa bat fzf
@@ -316,7 +316,7 @@ bindkey '^[[B' down-line-or-search
 PROMPT='%F{cyan}%n%f@%F{blue}%m%f %F{yellow}%1~%f %# '
 EOF
 ```
-## 8. Giving User Data LVM Disk Management (/data)
+## 9. Giving User Data LVM Disk Management (/data)
 *The rest of 1st disk and the whole 2nd disk were mapped into a single LVM partition with EXT4 fs for general storage, VMs, and large projects.*
 
 ```bash
@@ -324,10 +324,10 @@ EOF
 sudo chown -R ingGGRM:ingGGRM /data
 ```
 
-## 9. Hybrid Graphics Base (Intel + NVIDIA)
+## 10. Hybrid Graphics Base (Intel + NVIDIA)
 *Configuring the Acer Nitro 5 hardware stack (i5-10300H iGPU + GTX 1650 dGPU) for dynamic offloading using the `linux-zen` kernel.*
 
-### 9.1 Driver Installation
+### 10.1 Driver Installation
 *Using `nvidia-dkms` for compatibility across multiple kernels (Zen and LTS).*
 
 ```bash
@@ -339,7 +339,7 @@ mesa lib32-mesa mesa-utils vulkan-intel lib32-vulkan-intel \
 intel-media-driver nvidia-prime
 ```
 
-### 9.2 Kernel Modesetting (KMS) Integration
+### 10.2 Kernel Modesetting (KMS) Integration
 *Mandatory for Wayland compositors to properly control the display buffer without black screens.*
 
 ```bash
@@ -360,7 +360,7 @@ sudo nano /etc/mkinitcpio.conf
 sudo mkinitcpio -P
 ```
 
-### 9.3 Verification and Usage
+### 10.3 Verification and Usage
 ```bash
 # After rebooting, verify that the kernel modules are loaded:
 lsmod | grep nvidia
