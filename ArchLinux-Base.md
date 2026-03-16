@@ -7,7 +7,7 @@
 
 ## 1. Disk Partitioning GPT Table Layout Creation
 
-*Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.*
+Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.
 
 #### Disk 1
 ```bash
@@ -38,7 +38,9 @@ vgcreate vg_data /dev/nvme0n1p3 /dev/nvme1n1p1
 lvcreate -l 100%FREE -n lv_storage vg_data
 ```
 
-## 2. Disk Formatting & LVM Setup
+---
+
+## 2. Disk Formatting
 *Utilizing persistent labels to prevent asynchronous NVME enumeration swaps (`nvme0` vs `nvme1`).*
 
 ```bash
@@ -49,6 +51,8 @@ mkfs.btrfs -L ROOT -f /dev/nvme0n1p2
 # Format the LVM disk
 mkfs.ext4 -L DATA /dev/mapper/vg_data-lv_storage
 ```
+
+---
 
 ## 3. Btrfs Subvolume Initialization
 ```bash
@@ -64,6 +68,8 @@ btrfs subvolume create /mnt/@home_snapshots
 
 umount /mnt
 ```
+
+---
 
 ## 4. Mounting the File System
 ```bash
@@ -82,12 +88,16 @@ mount -o subvol=@home_snapshots,compress=zstd,noatime /dev/disk/by-label/ROOT /m
 mount /dev/disk/by-label/BOOT /mnt/boot
 ```
 
+---
+
 ## 5. Base System Installation
 *Using the Linux-Zen kernel for performance and LTS as a fallback.*
 
 ```bash
 pacstrap -K /mnt base base-devel linux-zen linux-zen-headers linux-lts linux-lts-headers linux-firmware nvim nano btrfs-progs lvm2 networkmanager snapper grub grub-btrfs inotify-tools xdg-user-dirs
 ```
+
+---
 
 ## 6. System Configuration
 ```bash
@@ -138,6 +148,8 @@ grub-mkconfig -o /boot/grub/grub.cfg
 # Reboot to start the fresh system
 reboot
 ```
+
+---
 
 ## 7. Manual Snapshot & Rollback Infrastructure
 *Ensuring strict manual control over system states without automated interference.*
@@ -299,6 +311,8 @@ chmod +x /home/ingGGRM/.local/bin/*
 chown -R ingGGRM:ingGGRM /home/ingGGRM/.local/bin
 ```
 
+---
+
 ## 8. Power TTY Environment (Zsh)
 ```bash
 # Install Zsh and modern CLI tools
@@ -328,6 +342,9 @@ bindkey '^[[B' down-line-or-search
 PROMPT='%F{cyan}%n%f@%F{blue}%m%f %F{yellow}%1~%f %# '
 EOF
 ```
+
+---
+
 ## 9. Giving User Data LVM Disk Management (/data)
 *The rest of 1st disk and the whole 2nd disk were mapped into a single LVM partition with EXT4 fs for general storage, VMs, and large projects.*
 
@@ -335,6 +352,8 @@ EOF
 # Give permissions to the user to manage /data directory files
 sudo chown -R ingGGRM:ingGGRM /data
 ```
+
+---
 
 ## 10. Hybrid Graphics Base (Intel + NVIDIA)
 *Configuring the Acer Nitro 5 hardware stack (i5-10300H iGPU + GTX 1650 dGPU) for dynamic offloading using the `linux-zen` kernel.*
@@ -382,4 +401,5 @@ prime-run nvidia-smi
 ```
 
 ---
+
 *Note: At this stage, the base system architecture is complete, stable, and protected by the snapshot trinity. The system is now prepared for a Window Manager or Desktop Environment installation.*
