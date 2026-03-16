@@ -5,7 +5,9 @@
 
 ---
 
-## 1. Disk Partitioning GPT Table Layout Creation *Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.
+## 1. Disk Partitioning GPT Table Layout Creation
+
+*Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.*
 
 ### Disk 1
 ```bash
