@@ -37,7 +37,7 @@ vgcreate vg_data /dev/nvme0n1p3 /dev/nvme1n1p1
 lvcreate -l 100%FREE -n lv_storage vg_data
 ```
 
---
+---
 
 ## 2. Disk Formatting
 *Utilizing persistent labels to prevent asynchronous NVME enumeration swaps (`nvme0` vs `nvme1`).*
