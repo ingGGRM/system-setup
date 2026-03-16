@@ -9,20 +9,33 @@
 
 *Thinking in the rest of the disk 1 and the whole disk 2 as a single LVM partition.*
 
-### Disk 1
+#### Disk 1
 ```bash
-# 1. Create 1GB EFI Partition (Type EF00)
+# Create 1GB EFI Partition (Type EF00)
 sgdisk -n 1:0:+1G -t 1:ef00 -c 1:"EFI" /dev/nvme0n1
-# 2. Create 150GB BTRFS Root Partition (Type 8300)
+# Create 150GB BTRFS Root Partition (Type 8300)
 sgdisk -n 2:0:+150G -t 2:8300 -c 2:"Arch_Root" /dev/nvme0n1
-# 3. Create LVM Partition with remaining space (Type 8E00)
+# Create LVM Partition with remaining space (Type 8E00)
 sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme0n1
 ```
 
-### Disk 2
+#### Disk 2
 ```bash
-# 1. Create LVM Partition with remaining space (Type 8E00)
-sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme1n1
+# Create LVM Partition with remaining space (Type 8E00)
+sgdisk -n 1:0:0 -t 1:8e00 -c 1:"LVM_PV_1" /dev/nvme1n1
+```
+
+### 1.1 Data Disk Setup - LVM Layout
+
+```bash
+# Create Physical Volumes using Part 3 of this 1 combined with part 1 of disk 2
+pvcreate /dev/nvme0n1p3 /dev/nvme1n1p1
+
+# Create the Volume Group (Naming it vg_data)
+vgcreate vg_data /dev/nvme0n1p3 /dev/nvme1n1p1
+
+# Create the Logical Volume using 100% of the combined space
+lvcreate -l 100%FREE -n lv_storage vg_data
 ```
 
 ## 2. Disk Formatting & LVM Setup
@@ -33,10 +46,7 @@ sgdisk -n 3:0:0 -t 3:8e00 -c 3:"LVM_PV_0" /dev/nvme1n1
 mkfs.fat -F 32 -n BOOT /dev/nvme0n1p1
 mkfs.btrfs -L ROOT -f /dev/nvme0n1p2
 
-# Data Disk (VMs & Heavy Files) - LVM Layout
-pvcreate /dev/nvme1n1
-vgcreate vg_data /dev/nvme1n1
-lvcreate -L 400G -n lv_storage vg_data
+# Format the LVM disk
 mkfs.ext4 -L DATA /dev/mapper/vg_data-lv_storage
 ```
 
